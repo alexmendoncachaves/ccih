@@ -1,0 +1,1591 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sistema ISC</title>
+  <!-- SheetJS para gerar Excel real -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      --ink: #0d1a2e;
+      --muted: #4a6180;
+      --line: #c8d6e8;
+      --panel: #ffffff;
+      --soft: #f2f5fb;
+      --header: #e6eef8;
+      --accent: #1a3c6e;
+      --accent-dark: #102650;
+      --accent-light: #2558a8;
+      --accent-2: #2563eb;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --ok: #16a34a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #eef2fb;
+    }
+
+    button, input, select { font: inherit; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 256px minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ── */
+    .login-shell {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: var(--accent);
+    }
+
+    .login-panel {
+      width: min(440px, 100%);
+      background: #fff;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 28px 26px;
+      display: grid;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(26,60,110,0.18);
+    }
+
+    .login-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 4px;
+      border-bottom: 2px solid var(--header);    }
+
+    .login-logo .mark {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 800;
+      font-size: 15px;
+      letter-spacing: 0;
+      flex-shrink: 0;
+    }
+
+    .login-logo-text h1 {
+      margin: 0;
+      font-size: 17px;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+
+    .login-logo-text p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .login-panel h2 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--ink);
+    }
+
+    .login-panel > p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .app.hidden, .login-shell.hidden { display: none; }
+
+    /* ── SIDEBAR ── */
+    aside {
+      background: var(--accent);
+      color: #fff;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand { display: grid; gap: 8px; }
+
+    .mark {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .brand-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.2;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
+      line-height: 1.35;
+    }
+
+    .brand-divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.18);
+      margin: 0;
+    }
+
+    .brand-inst {
+      font-size: 11px;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.4;
+    }
+
+    nav { display: grid; gap: 4px; }
+
+    .nav-button {
+      width: 100%;
+      border: 0;
+      border-radius: 6px;
+      padding: 11px 12px;
+      color: rgba(255,255,255,0.8);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .nav-button.active, .nav-button:hover {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,0.35);
+      border-radius: 4px;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    /* OneDrive badge na sidebar */
+    .onedrive-badge {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .onedrive-badge strong {
+      color: #fff;
+      display: block;
+      font-size: 13px;
+    }
+
+    .onedrive-badge .ms-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
+    }
+
+    .btn-ms {
+      background: #fff;
+      color: var(--accent);
+      border: none;
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-ms:hover { background: #e6eef8; }
+
+    .btn-ms.logout { background: rgba(255,255,255,0.15); color: #fff; }
+    .btn-ms.logout:hover { background: rgba(255,255,255,0.25); }
+
+    /* ── MAIN ── */
+    main {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 22px;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 6px;
+      padding: 9px 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 38px;
+      font-size: 14px;
+    }
+
+    .button.primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .button.primary:hover { background: var(--accent-dark); }
+
+    .button.danger {
+      color: #991b1b;
+      border-color: #fecaca;
+      background: #fff7f7;
+    }
+
+    .button:disabled, input:disabled, select:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    /* ── SYNC BAR ── */
+    .sync-bar {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .sync-bar .sync-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .sync-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #d1d5db;
+      flex-shrink: 0;
+    }
+
+    .sync-dot.ok { background: #16a34a; }
+    .sync-dot.bad { background: #dc2626; }
+    .sync-dot.loading { background: #d97706; animation: pulse 1s infinite; }
+
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    .sync-text { color: var(--muted); }
+    .sync-text.ok { color: #166534; font-weight: 600; }
+    .sync-text.bad { color: #991b1b; }
+
+    /* ── VIEWS ── */
+    .view { display: none; gap: 18px; }
+    .view.active { display: grid; }
+
+    /* ── KPIs ── */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+    }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      min-height: 100px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+      border-left: 4px solid var(--accent);
+    }
+
+    .kpi span { color: var(--muted); font-size: 13px; }
+    .kpi strong { font-size: 26px; line-height: 1; color: var(--accent); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      background: var(--header);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 14px;
+      font-weight: 700;
+      color: var(--accent);
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .panel-body { padding: 12px; }
+
+    .span-3 { grid-column: span 3; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    th, td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--accent);
+      background: var(--header);
+      font-weight: 700;
+    }
+
+    tr:last-child td { border-bottom: 0; }
+
+    .right { text-align: right; }
+    .center { text-align: center; }
+
+    .risk {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-weight: 700;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .risk.baixo { background: #dcfce7; color: #166534; }
+    .risk.moderado { background: #fef3c7; color: #92400e; }
+    .risk.alto { background: #fee2e2; color: #991b1b; }
+
+    .status {
+      display: inline-block;
+      border-radius: 5px;
+      padding: 3px 7px;
+      font-size: 12px;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      background: #fff;
+    }
+
+    .status.ok { color: #166534; background: #dcfce7; border-color: #bbf7d0; }
+    .status.warn { color: #92400e; background: #fef3c7; border-color: #fde68a; }
+    .status.bad { color: #991b1b; background: #fee2e2; border-color: #fecaca; }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) 2fr 70px;
+      gap: 10px;
+      align-items: center;
+      margin: 9px 0;
+      font-size: 14px;
+    }
+
+    .bar-track {
+      height: 12px;
+      background: #d4e0f8;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      min-width: 0;
+    }
+
+    .dashboard-charts {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(220px, 1fr));
+      gap: 12px;
+      background: #fff;
+    }
+
+    .chart-box {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      min-height: 280px;
+      background: #f9fcf9;
+    }
+
+    .chart-title {
+      width: 100%;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      min-height: 34px;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+    }
+
+    .chart-box canvas { width: 100%; max-width: 360px; height: 220px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      min-height: 38px;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    input:focus, select:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: 1px;
+    }
+
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 16px;
+      text-align: center;
+      background: var(--soft);
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+    }
+
+    .table-wrap { overflow-x: auto; }
+
+    .patients-table { min-width: 1160px; }
+    .patients-table th:nth-child(1) { width: 88px; }
+    .patients-table th:nth-child(2) { width: 210px; }
+    .patients-table th:nth-child(6) { width: 132px; }
+    .patients-table th:nth-child(10) { width: 126px; }
+    .patients-table th:nth-child(11) { width: 126px; }
+
+    .user-badge {
+      margin-top: auto;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 10px;
+      display: grid;
+      gap: 4px;
+      font-size: 13px;
+      color: rgba(255,255,255,0.75);
+    }
+
+    .user-badge strong { color: #fff; font-size: 14px; }
+
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      aside { position: sticky; top: 0; z-index: 5; padding: 12px; }
+      nav { grid-template-columns: repeat(3, 1fr); }
+      .brand { display: none; }
+      .kpis { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+      .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12 { grid-column: span 12; }
+      .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .dashboard-charts { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+    }
+
+    @media (max-width: 620px) {
+      main { padding: 14px; }
+      nav { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .bar-row { grid-template-columns: 1fr; }
+      .dashboard-charts { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<section class="login-shell" id="login-shell">
+  <form class="login-panel" id="login-form">
+    <div style="display:flex;justify-content:center;margin-bottom:4px;">
+      <div class="mark" style="width:56px;height:56px;border-radius:10px;font-size:17px;background:var(--accent);color:#fff;">ISC</div>
+    </div>
+    <h2 style="text-align:center;margin:0 0 4px;font-size:22px;color:var(--accent);">Sistema de Acompanhamento ISC</h2>
+    <p style="text-align:center;margin:0 0 8px;color:var(--muted);font-size:14px;">Acesse com seu usuário para liberar as permissões do seu perfil.</p>
+    <label>Usuário<input id="login-user" autocomplete="username" required></label>
+    <label>Senha<input id="login-pass" type="password" autocomplete="current-password" required></label>
+    <button class="button primary" type="submit" style="justify-content:center;">Entrar</button>
+    <div id="login-message" class="status" style="font-size:13px;padding:8px 10px;text-align:center;"></div>
+  </form>
+</section>
+
+<!-- ── APP ── -->
+<div class="app hidden" id="app-shell">
+  <aside>
+    <div class="brand">
+      <div class="mark">ISC</div>
+      <div class="brand-title">Sistema ISC</div>
+      <div class="brand-sub">Vigilância de Infecção de Sítio Cirúrgico</div>
+    </div>
+
+    <nav aria-label="Navegação principal">
+      <button class="nav-button active" type="button" data-view="dashboard"><span class="nav-icon">D</span>Dashboard</button>
+      <button class="nav-button" type="button" data-view="patients"><span class="nav-icon">P</span>Pacientes</button>
+      <button class="nav-button" type="button" data-view="record"><span class="nav-icon">+</span>Cadastro</button>
+      <button class="nav-button gestor-only" type="button" data-view="users"><span class="nav-icon">U</span>Usuários</button>
+    </nav>
+
+    <!-- Bloco OneDrive -->
+    <div class="onedrive-badge" id="onedrive-badge">
+      <strong>☁ OneDrive / Excel</strong>
+      <div class="ms-name">Salva direto na pasta sincronizada</div>
+      <button class="btn-ms" id="btn-ms-login" type="button">📁 Definir pasta de destino</button>
+    </div>
+
+    <div class="user-badge">
+      <span>Conectado como</span>
+      <strong id="current-user-label"></strong>
+      <button class="button" type="button" id="logout" style="margin-top:4px;background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff;">Sair do sistema</button>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <h2 id="view-title">Dashboard</h2>
+      <div class="actions">
+        <button class="button" type="button" id="export-csv">Exportar CSV</button>
+        <button class="button" type="button" id="export-dashboard-jpg">Dashboard JPG</button>
+        <button class="button" type="button" id="export-indicators-excel">Indicadores XLS</button>
+        <button class="button primary" type="button" id="update-excel">⬇ Baixar Excel (OneDrive)</button>
+        <button class="button" type="button" id="reset-data">Restaurar base</button>
+      </div>
+    </div>
+
+    <!-- Barra de status sincronização -->
+    <div class="sync-bar">
+      <div class="sync-info">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span class="sync-text" id="sync-status">Dados salvos automaticamente no navegador após cada alteração.</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);" id="sync-file-label"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="dashboard">
+      <div class="kpis">
+        <div class="kpi"><span>Pacientes incluídos</span><strong id="kpi-total">0</strong></div>
+        <div class="kpi"><span>Taxa global de ISC</span><strong id="kpi-isc">0%</strong></div>
+        <div class="kpi"><span>Contatos no prazo</span><strong id="kpi-contact">0%</strong></div>
+        <div class="kpi"><span>Perdas de seguimento</span><strong id="kpi-loss">0%</strong></div>
+      </div>
+
+      <div class="grid">
+        <section class="panel span-12">
+          <div class="panel-header">Gráficos do Dashboard</div>
+          <div class="panel-body dashboard-charts" id="dashboard-charts">
+            <div class="chart-box"><div class="chart-title">Taxa Global de ISC</div><canvas id="donut-chart" width="280" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Tipo de Risco</div><canvas id="risk-chart" width="360" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Contatos Programados</div><canvas id="vertical-chart" width="320" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Tipos de ISC</div><canvas id="horizontal-chart" width="360" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Serviço Médico</div><canvas id="service-chart" width="360" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Tipo de Cirurgia</div><canvas id="surgery-type-chart" width="360" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Potencial de Contaminação</div><canvas id="contamination-chart" width="360" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Cirurgias por Mês/Ano</div><canvas id="month-chart" width="360" height="220"></canvas></div>
+            <div class="chart-box"><div class="chart-title">Faixa Etária</div><canvas id="age-chart" width="360" height="220"></canvas></div>
+          </div>
+        </section>
+
+        <section class="panel span-3">
+          <div class="panel-header">Cobertura da Vigilância</div>
+          <div class="panel-body">
+            <table><tbody>
+              <tr><td>Nº de pacientes incluídos</td><td class="right" id="cov-total"></td></tr>
+              <tr><td>% acompanhados</td><td class="right" id="cov-followed"></td></tr>
+              <tr><td>% perdas</td><td class="right" id="cov-loss"></td></tr>
+            </tbody></table>
+          </div>
+        </section>
+
+        <section class="panel span-3">
+          <div class="panel-header">Adesão aos Contatos</div>
+          <div class="panel-body">
+            <table><tbody>
+              <tr><td>No prazo</td><td class="right" id="adh-ok"></td></tr>
+              <tr><td>Atrasados</td><td class="right" id="adh-late"></td></tr>
+              <tr><td>Não realizados</td><td class="right" id="adh-missed"></td></tr>
+            </tbody></table>
+          </div>
+        </section>
+
+        <section class="panel span-3">
+          <div class="panel-header">Tempo e Taxa ISC</div>
+          <div class="panel-body">
+            <table><tbody>
+              <tr><td>Conclusão da vigilância</td><td class="right" id="time-close"></td></tr>
+              <tr><td>Taxa global de ISC</td><td class="right" id="isc-global"></td></tr>
+              <tr><td>Diagnóstico da ISC</td><td class="right" id="time-diagnosis"></td></tr>
+              <tr><td>Óbito relacionado</td><td class="right" id="isc-death"></td></tr>
+            </tbody></table>
+          </div>
+        </section>
+
+        <section class="panel span-3">
+          <div class="panel-header">Taxa por Potencial</div>
+          <div class="panel-body" id="contamination-bars"></div>
+        </section>
+
+        <section class="panel span-4">
+          <div class="panel-header">Distribuição dos Tipos de ISC</div>
+          <div class="panel-body" id="type-bars"></div>
+        </section>
+
+        <section class="panel span-4">
+          <div class="panel-header">Local de Identificação</div>
+          <div class="panel-body" id="place-bars"></div>
+        </section>
+
+        <section class="panel span-4">
+          <div class="panel-header">Evolução dos Casos</div>
+          <div class="panel-body" id="evolution-bars"></div>
+        </section>
+
+        <section class="panel span-7">
+          <div class="panel-header">Distribuição dos Pacientes por Faixa de Risco</div>
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Risco</th><th class="right">N</th><th class="right">%</th></tr></thead>
+              <tbody id="risk-distribution"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel span-5">
+          <div class="panel-header">Taxa de ISC por Faixa de Risco</div>
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Faixa</th><th class="right">ISC%</th></tr></thead>
+              <tbody id="risk-isc"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel span-12">
+          <div class="panel-header">Tabela de Indicadores</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Grupo</th><th>Indicador</th><th class="right">Resultado</th></tr></thead>
+              <tbody id="all-indicators-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- PACIENTES -->
+    <section class="view" id="patients">
+      <section class="panel">
+        <div class="panel-header">
+          <span>Base de pacientes</span>
+          <input id="search" type="search" placeholder="Buscar por nome, código ou risco" style="width:260px;min-height:32px;padding:6px 10px;">
+        </div>
+        <div class="table-wrap">
+          <table class="patients-table">
+            <thead>
+              <tr>
+                <th>Código</th><th>Nome</th><th>Idade</th><th>ASA</th><th>Serviço</th>
+                <th>Cirurgia</th><th>Risco</th><th>Contato 1</th><th>Contato 2</th>
+                <th>Contato 3</th><th>ISC</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="patients-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- CADASTRO -->
+    <section class="view" id="record">
+      <section class="panel">
+        <div class="panel-header">Cadastro do paciente</div>
+        <div class="panel-body">
+          <form id="patient-form">
+            <input type="hidden" id="edit-index">
+            <div class="form-grid">
+              <label>Código<input required id="code"></label>
+              <label>Nome<input required id="name"></label>
+              <label>Idade<input required id="age" type="number" min="0" max="120"></label>
+              <label>Sexo<select id="sex"><option>Masculino</option><option>Feminino</option></select></label>
+              <label>ASA<select id="asa"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+              <label>Serviço médico<select id="service"></select></label>
+              <label>Duração<input required id="duration" placeholder="02:40"></label>
+              <label>Tipo<select id="surgery-type"><option>Eletiva</option><option>Urgência</option></select></label>
+              <label>Utilizou vídeo<select id="video"><option>Sim</option><option>Não</option></select></label>
+              <label>Implantes<select id="implants"><option>Não</option><option>Sim</option></select></label>
+              <label>Potencial contaminação<select id="contamination"></select></label>
+              <label>Tempo extra corp.<input id="extra-time" value="0"></label>
+              <label>Data cirurgia<input required id="surgery-date" type="date"></label>
+              <label>Infecção<select id="infection"><option>Não</option><option>Sim</option></select></label>
+              <label>Tipo infecção<select id="infection-type"></select></label>
+              <label>Local identificação<select id="infection-place"></select></label>
+              <label>Data infecção<input id="infection-date" type="date"></label>
+              <label>Evolução 1<select id="evolution-1"></select></label>
+              <label>Evolução 2<select id="evolution-2"></select></label>
+              <label>Saída<select id="outcome"><option>Alta</option><option>Óbito</option></select></label>
+              <label>Data saída<input id="outcome-date" type="date"></label>
+              <label>Perda<select id="loss"><option>Não</option><option>Sim</option></select></label>
+              <label>Data consulta<input id="follow-date" type="date"></label>
+            </div>
+            <div class="form-actions">
+              <button class="button" type="button" id="clear-form">Limpar</button>
+              <button class="button primary" type="submit">Salvar paciente</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </section>
+
+    <!-- USUÁRIOS -->
+    <section class="view" id="users">
+      <section class="panel">
+        <div class="panel-header">Cadastro de usuários</div>
+        <div class="panel-body">
+          <form id="user-form">
+            <input type="hidden" id="edit-user-index">
+            <div class="form-grid">
+              <label>Nome<input required id="new-user-name"></label>
+              <label>Usuário<input required id="new-user-login"></label>
+              <label>Senha<input required id="new-user-pass" type="password"></label>
+              <label>Perfil
+                <select id="new-user-role">
+                  <option value="gestor">Gestor</option>
+                  <option value="auditor">Auditor</option>
+                  <option value="usuario">Usuário</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="button" type="button" id="clear-user-form">Limpar</button>
+              <button class="button primary" type="submit">Salvar usuário</button>
+            </div>
+          </form>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Ações</th></tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  EXPORTAR EXCEL REAL (.xlsx) via SheetJS
+//  O arquivo é baixado e o usuário salva na pasta do
+//  OneDrive já sincronizada no computador.
+// ═══════════════════════════════════════════════════════
+
+// Nome padrão do arquivo ao baixar
+const EXCEL_FILENAME = "Proposta de acompanhamento.xlsx";
+
+function saveToOneDrive() {
+  if (!canEditPatients()) {
+    setSyncStatus("Seu perfil não permite exportar o Excel.", "bad"); return;
+  }
+
+  setSyncStatus("Gerando arquivo Excel...", "loading");
+
+  try {
+    const headers = [
+      "Codigo","Nome","Idade","Sexo","ASA","Servico","Duracao","Tipo","Video","Implantes",
+      "Potencial Cont.","Tempo Extra","Data Cirurgia","Score","Risco",
+      "Contato 1","Status 1","Contato 2","Status 2","Contato 3","Status 3",
+      "Infeccao","Tipo Infeccao","Local","Data Infeccao","Evolucao 1","Evolucao 2",
+      "Saida","Data Saida","Perda","Data Consulta"
+    ];
+
+    const dataRows = excelRows().map(p => [
+      p.code, p.name, p.age, p.sex, p.asa, p.service, p.duration, p.surgeryType,
+      p.video, p.implants, p.contamination, p.extraTime, p.surgeryDate,
+      p.score, p.risk,
+      p.contact1, p.status1, p.contact2, p.status2, p.contact3, p.status3,
+      p.infection, p.infectionType, p.infectionPlace, p.infectionDate,
+      p.evolution1, p.evolution2, p.outcome, p.outcomeDate, p.loss, p.followDate
+    ]);
+
+    // Cria workbook com SheetJS
+    const wb = XLSX.utils.book_new();
+
+    // Aba principal — Pacientes
+    const wsData = [headers, ...dataRows];
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Largura das colunas
+    ws["!cols"] = [
+      {wch:10},{wch:30},{wch:7},{wch:10},{wch:5},{wch:22},{wch:8},{wch:10},
+      {wch:7},{wch:10},{wch:20},{wch:10},{wch:13},{wch:7},{wch:14},
+      {wch:12},{wch:14},{wch:12},{wch:14},{wch:12},{wch:14},
+      {wch:10},{wch:22},{wch:14},{wch:13},{wch:12},{wch:22},
+      {wch:10},{wch:12},{wch:8},{wch:13}
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Pacientes_ISC");
+
+    // Aba de indicadores
+    const indRows = [...document.querySelectorAll("#all-indicators-body tr")]
+      .map(tr => [...tr.children].map(td => td.textContent.trim()));
+    if (indRows.length > 0) {
+      const wsInd = XLSX.utils.aoa_to_sheet([["Grupo","Indicador","Resultado"], ...indRows]);
+      wsInd["!cols"] = [{wch:40},{wch:50},{wch:15}];
+      XLSX.utils.book_append_sheet(wb, wsInd, "Indicadores_ISC");
+    }
+
+    // Faz o download
+    XLSX.writeFile(wb, EXCEL_FILENAME);
+
+    setSyncStatus(`✓ Excel gerado: ${patients.length} registro(s). Salve na pasta do OneDrive.`, "ok");
+  } catch (err) {
+    setSyncStatus("Erro ao gerar Excel: " + err.message, "bad");
+  }
+}
+
+function initMsal() {
+  // Sem autenticação Microsoft — função mantida para compatibilidade
+  setSyncStatus("Dados salvos no navegador. Use 'Baixar Excel' para exportar.", "");
+}
+
+function updateMsUi() {}
+
+function msLogin() {
+  alert("O arquivo Excel é gerado e baixado diretamente.\nSalve-o na pasta do OneDrive sincronizada no seu computador para que seja enviado automaticamente para a nuvem.");
+}
+
+function msLogout() {}
+
+// ═══════════════════════════════════════════════════════
+//  SISTEMA ISC — LÓGICA ORIGINAL (sem alteração)
+// ═══════════════════════════════════════════════════════
+const STORAGE_KEY = "sistema-isc-pacientes-v1";
+const USERS_KEY   = "sistema-isc-usuarios-v1";
+const SESSION_KEY  = "sistema-isc-sessao-v1";
+const TODAY = new Date();
+
+const defaultUsers = [
+  { name: "Gestor", login: "gestor", password: "gestor123", role: "gestor" }
+];
+
+const lists = {
+  service: [
+    "Cirurgia Cardíaca","Cirurgia Geral","Cirurgia Oral","Cirurgia Plástica",
+    "Cirurgia Torácica","Cirurgia Vascular","Clínica Médica","Endocrinologia",
+    "Gastroenterologia","Ginecologia","Neurocirurgia","Oftalmologia",
+    "Ortopedia e Traumatologia","Otorrinolaringologia","Pneumologia",
+    "Proctologia","Urologia"
+  ],
+  contamination: ["Limpa","Potencialmente Contaminada","Contaminada","Infectada"],
+  infectionType: ["","Incisional Superficial","Incisional Profunda","Órgão/Cavidade"],
+  infectionPlace: ["","Ambulatorial","Internação"],
+  evolution1: ["","Melhora","Cura","Sepse","Óbito"],
+  evolution2: ["","Melhora","Cura","Sepse","Óbito diretamente relacionado","Óbito Indireto","Óbito não relacionado","Reoperação"]
+};
+
+const initialPatients = [
+  { code:"517723", name:"Ivo de Jesus Montes", age:65, sex:"Masculino", asa:2, service:"Cirurgia Vascular", duration:"02:40", surgeryType:"Eletiva", video:"Não", implants:"Não", contamination:"Limpa", extraTime:"0", surgeryDate:"2026-06-13", infection:"Não", infectionType:"", infectionPlace:"", infectionDate:"", evolution1:"", evolution2:"", outcome:"Alta", outcomeDate:"2017-01-12", loss:"Não", followDate:"2017-03-09" },
+  { code:"521252", name:"Sandra Maria de Oliveira Silva", age:59, sex:"Feminino", asa:1, service:"Cirurgia Vascular", duration:"01:20", surgeryType:"Eletiva", video:"Sim", implants:"Não", contamination:"Limpa", extraTime:"0", surgeryDate:"2026-05-20", infection:"Não", infectionType:"", infectionPlace:"", infectionDate:"", evolution1:"", evolution2:"", outcome:"Alta", outcomeDate:"2017-07-30", loss:"Sim", followDate:"2017-07-30" }
+];
+
+let patients = loadPatients();
+let users = loadUsers();
+let currentUser = loadSession();
+
+function loadUsers() {
+  const s = localStorage.getItem(USERS_KEY);
+  if (!s) { localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers)); return structuredClone(defaultUsers); }
+  try { const p = JSON.parse(s); return Array.isArray(p) && p.length ? p : structuredClone(defaultUsers); } catch { return structuredClone(defaultUsers); }
+}
+
+function persistUsers() { localStorage.setItem(USERS_KEY, JSON.stringify(users)); }
+
+function loadSession() {
+  const login = localStorage.getItem(SESSION_KEY);
+  if (!login) return null;
+  return users.find(u => u.login === login) || null;
+}
+
+function hasRole(r) { return currentUser?.role === r; }
+function canManageUsers() { return hasRole("gestor"); }
+function canEditPatients() { return hasRole("gestor") || hasRole("auditor"); }
+
+function loadPatients() {
+  const s = localStorage.getItem(STORAGE_KEY);
+  if (!s) return structuredClone(initialPatients);
+  try { const p = JSON.parse(s); return Array.isArray(p) ? p : structuredClone(initialPatients); } catch { return structuredClone(initialPatients); }
+}
+
+function persist() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
+  setSyncStatus("Salvo no navegador. Clique em 'Salvar no OneDrive' para sincronizar.", "");
+}
+
+function setSyncStatus(msg, kind = "") {
+  const el = document.getElementById("sync-status");
+  const dot = document.getElementById("sync-dot");
+  el.textContent = msg;
+  el.className = "sync-text" + (kind ? " " + kind : "");
+  dot.className = "sync-dot" + (kind ? " " + kind : "");
+}
+
+function normalized(v) {
+  return String(v||"").trim().normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+}
+
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+  const t = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(t)) { const [y,m,d]=t.split("-").map(Number); return new Date(y,m-1,d); }
+  const m2 = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!m2) return null;
+  let [,d,mo,y]=m2.map(Number); if(y<100) y+=2000; return new Date(y,mo-1,d);
+}
+
+function toInputDate(v) {
+  const d = parseDate(v); if(!d) return "";
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function formatDate(v) {
+  const d = parseDate(v); if(!d) return "";
+  return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"});
+}
+
+function addDays(v, days) {
+  const d = parseDate(v); if(!d) return "";
+  const n = new Date(d); n.setDate(n.getDate()+days); return toInputDate(n);
+}
+
+function diffDays(s, e) {
+  const a=parseDate(s), b=parseDate(e);
+  if(!a||!b||b<a) return null;
+  return Math.round((b-a)/86400000);
+}
+
+function durationHours(v) {
+  const t=String(v||"").trim();
+  const m=t.match(/^(\d{1,2}):(\d{2})$/);
+  if(m) return Number(m[1])+Number(m[2])/60;
+  const n=Number(t.replace(",",".")); return isFinite(n)?n:0;
+}
+
+function patientCalc(p) {
+  const ageScore = Number(p.age)<=40 ? 0 : Math.trunc((Number(p.age)-40)/5);
+  const hoursScore = durationHours(p.duration)<=2 ? 0 : Math.floor(durationHours(p.duration)-2);
+  const vt = normalized(p.video);
+  const videoScore = ["sim","s"].includes(vt) ? 0 : 4;
+  const pc = normalized(p.contamination);
+  const contaminationScore = pc==="limpa"?0:pc.includes("potencialmente")?2:["contaminada","infectada"].includes(pc)?4:0;
+  const serviceScore = normalized(p.service)==="cirurgia geral"?1:0;
+  const asaN=Number(p.asa);
+  const asaScore = asaN===1?0:asaN===2?1:2;
+  const score = ageScore+hoursScore+videoScore+contaminationScore+serviceScore+asaScore;
+  const risk = score<=4?"Baixo":score<=8?"Moderado":"Alto";
+  const contacts = risk==="Baixo"
+    ? [addDays(p.surgeryDate,30),"",""]
+    : risk==="Moderado"
+      ? [addDays(p.surgeryDate,21),"",addDays(p.surgeryDate,30)]
+      : [addDays(p.surgeryDate,7),addDays(p.surgeryDate,21),addDays(p.surgeryDate,30)];
+  return { ageScore,hoursScore,videoScore,contaminationScore,serviceScore,asaScore,score,risk,contacts,
+    statuses: contacts.map(d=>contactStatus(d,p.followDate)) };
+}
+
+function contactStatus(cd, fd) {
+  const c=parseDate(cd); if(!c) return "";
+  const f=parseDate(fd);
+  if(!f) return c<startOfDay(TODAY)?"Não realizado":"Programado";
+  return f<=c?"No prazo":"Atrasado";
+}
+
+function startOfDay(d) { return new Date(d.getFullYear(),d.getMonth(),d.getDate()); }
+function pct(v) { if(!isFinite(v)) return "0%"; return `${Math.round(v*1000)/10}%`; }
+function countWhere(arr, fn) { return arr.reduce((s,x)=>s+(fn(x)?1:0),0); }
+function rate(n,d) { return d?n/d:0; }
+function average(arr) { if(!arr.length) return 0; return arr.reduce((s,v)=>s+v,0)/arr.length; }
+
+function indicators() {
+  const enriched = patients.map(p=>({...p,calc:patientCalc(p)}));
+  const total = enriched.length;
+  const infection = countWhere(enriched, p=>normalized(p.infection)==="sim");
+  const losses = countWhere(enriched, p=>normalized(p.loss)==="sim");
+  const contacts = enriched.flatMap(p=>p.calc.statuses).filter(s=>["No prazo","Atrasado","Não realizado"].includes(s));
+  const closeDays = enriched.map(p=>diffDays(p.surgeryDate,p.outcomeDate)).filter(v=>v!==null);
+  const diagDays = enriched.filter(p=>normalized(p.infection)==="sim").map(p=>diffDays(p.surgeryDate,p.infectionDate)).filter(v=>v!==null);
+  return { enriched,total,infection,losses,accompanied:total-losses,
+    contactOnTime:countWhere(contacts,s=>s==="No prazo"),
+    contactLate:countWhere(contacts,s=>s==="Atrasado"),
+    contactMissed:countWhere(contacts,s=>s==="Não realizado"),
+    contactsDue:contacts.length,closeAvg:average(closeDays),diagnosisAvg:average(diagDays),
+    relatedDeaths:countWhere(enriched,p=>normalized(p.evolution2)==="obito diretamente relacionado") };
+}
+
+function setText(id, v) { document.getElementById(id).textContent = v; }
+
+function renderDashboard() {
+  const data = indicators();
+  const contaminationRows = lists.contamination.map(label=>{
+    const g=data.enriched.filter(p=>normalized(p.contamination)===normalized(label));
+    const inf=countWhere(g,p=>normalized(p.infection)==="sim");
+    return {label,value:rate(inf,g.length),text:pct(rate(inf,g.length))};
+  });
+  const typeRows=[["Superficial","Incisional Superficial"],["Profunda","Incisional Profunda"],["Órgão/Cavidade","Órgão/Cavidade"]]
+    .map(([label,value])=>({label,value:countWhere(data.enriched,p=>normalized(p.infectionType)===normalized(value)),text:countWhere(data.enriched,p=>normalized(p.infectionType)===normalized(value))}));
+  const placeRows=[["Ambulatório","Ambulatorial"],["Internação","Internação"]]
+    .map(([label,value])=>({label,value:countWhere(data.enriched,p=>normalized(p.infectionPlace)===normalized(value)),text:countWhere(data.enriched,p=>normalized(p.infectionPlace)===normalized(value))}));
+  const evolutionRows=["Cura","Melhora","Sepse","Óbito"].map(label=>({
+    label,
+    value:countWhere(data.enriched,p=>label==="Óbito"?normalized(p.evolution2).startsWith("obito"):normalized(p.evolution2)===normalized(label)),
+    text:countWhere(data.enriched,p=>label==="Óbito"?normalized(p.evolution2).startsWith("obito"):normalized(p.evolution2)===normalized(label))
+  }));
+  const risks=["Baixo","Moderado","Alto"];
+  const riskDistributionRows=risks.map(risk=>{
+    const n=countWhere(data.enriched,p=>p.calc.risk===risk);
+    return {risk,n,percent:pct(rate(n,data.total))};
+  });
+  const riskIscRows=risks.map(risk=>{
+    const g=data.enriched.filter(p=>p.calc.risk===risk);
+    const inf=countWhere(g,p=>normalized(p.infection)==="sim");
+    return {risk,percent:pct(rate(inf,g.length))};
+  });
+
+  setText("kpi-total",data.total); setText("kpi-isc",pct(rate(data.infection,data.total)));
+  setText("kpi-contact",pct(rate(data.contactOnTime,data.contactsDue)));
+  setText("kpi-loss",pct(rate(data.losses,data.total)));
+  setText("cov-total",data.total); setText("cov-followed",pct(rate(data.accompanied,data.total)));
+  setText("cov-loss",pct(rate(data.losses,data.total)));
+  setText("adh-ok",pct(rate(data.contactOnTime,data.contactsDue)));
+  setText("adh-late",pct(rate(data.contactLate,data.contactsDue)));
+  setText("adh-missed",pct(rate(data.contactMissed,data.contactsDue)));
+  setText("time-close",`${Math.round(data.closeAvg)} dias`);
+  setText("isc-global",pct(rate(data.infection,data.total)));
+  setText("time-diagnosis",`${Math.round(data.diagnosisAvg)} dias`);
+  setText("isc-death",data.relatedDeaths);
+
+  renderAllIndicatorsTable(data,contaminationRows,typeRows,placeRows,riskDistributionRows,riskIscRows,evolutionRows);
+  renderCharts(data,typeRows,riskDistributionRows);
+  renderBars("contamination-bars",contaminationRows,true);
+  renderBars("type-bars",typeRows);
+  renderBars("place-bars",placeRows);
+  renderBars("evolution-bars",evolutionRows);
+
+  document.getElementById("risk-distribution").innerHTML=riskDistributionRows
+    .map(r=>`<tr><td>${r.risk}</td><td class="right">${r.n}</td><td class="right">${r.percent}</td></tr>`).join("");
+  document.getElementById("risk-isc").innerHTML=riskIscRows
+    .map(r=>`<tr><td>${r.risk}</td><td class="right">${r.percent}</td></tr>`).join("");
+}
+
+function renderAllIndicatorsTable(data,cRows,tRows,pRows,rdRows,riRows,eRows) {
+  const rows=[
+    ["Cobertura da Vigilância","Nº de pacientes incluídos na vigilância",data.total],
+    ["Cobertura da Vigilância","% de pacientes cirúrgicos acompanhados",pct(rate(data.accompanied,data.total))],
+    ["Cobertura da Vigilância","% de perdas de seguimento",pct(rate(data.losses,data.total))],
+    ["Adesão aos Contatos Programados","% de contatos realizados no prazo",pct(rate(data.contactOnTime,data.contactsDue))],
+    ["Adesão aos Contatos Programados","% de contatos atrasados",pct(rate(data.contactLate,data.contactsDue))],
+    ["Adesão aos Contatos Programados","% de contatos não realizados",pct(rate(data.contactMissed,data.contactsDue))],
+    ["Tempo Médio para Conclusão da Vigilância","Tempo médio para conclusão",`${Math.round(data.closeAvg)} dias`],
+    ["Taxa Global de ISC","Taxa global de ISC",pct(rate(data.infection,data.total))],
+    ["Tempo Médio até Diagnóstico da ISC","Tempo médio até diagnóstico",`${Math.round(data.diagnosisAvg)} dias`],
+    ["Óbito Relacionado à ISC","Óbitos diretamente relacionados",data.relatedDeaths],
+    ...cRows.map(r=>["Taxa por Potencial de Contaminação",r.label,r.text]),
+    ...tRows.map(r=>["Distribuição dos Tipos de ISC",r.label,r.text]),
+    ...pRows.map(r=>["Local de Identificação",r.label,r.text]),
+    ...rdRows.map(r=>["Distribuição dos Pacientes por Faixa de Risco",`${r.risk} - N`,r.n]),
+    ...rdRows.map(r=>["Distribuição dos Pacientes por Faixa de Risco",`${r.risk} - %`,r.percent]),
+    ...riRows.map(r=>["Taxa de ISC por Faixa de Risco",r.risk,r.percent]),
+    ...eRows.map(r=>["Evolução dos Casos",r.label,r.text])
+  ];
+  document.getElementById("all-indicators-body").innerHTML=rows
+    .map(([g,i,r])=>`<tr><td>${g}</td><td>${i}</td><td class="right">${r}</td></tr>`).join("");
+}
+
+function renderCharts(data,typeRows,rdRows) {
+  drawDonutChart("donut-chart",[
+    {label:"Com ISC",value:data.infection,color:"#dc2626"},
+    {label:"Sem ISC",value:Math.max(0,data.total-data.infection),color:"#1a3c6e"}
+  ],"ISC");
+  drawHorizontalChart("risk-chart",rdRows.map((r,i)=>({label:r.risk,value:r.n,color:["#1a3c6e","#d97706","#dc2626"][i]})));
+  drawVerticalChart("vertical-chart",[
+    {label:"No prazo",value:data.contactOnTime,color:"#1a3c6e"},
+    {label:"Atrasado",value:data.contactLate,color:"#d97706"},
+    {label:"Não realizado",value:data.contactMissed,color:"#dc2626"}
+  ]);
+  drawHorizontalChart("horizontal-chart",typeRows.map((r,i)=>({label:r.label,value:r.value,color:["#1a3c6e","#2558a8","#102650"][i]})));
+  drawHorizontalChart("service-chart",topRows(groupCount(data.enriched,p=>p.service),5,chartPalette()));
+  drawHorizontalChart("surgery-type-chart",toChartRows(groupCount(data.enriched,p=>p.surgeryType||"Não informado"),chartPalette()));
+  drawHorizontalChart("contamination-chart",toChartRows(groupCount(data.enriched,p=>p.contamination||"Não informado"),chartPalette()));
+  drawVerticalChart("month-chart",monthChartRows(data.enriched).slice(-6));
+  drawHorizontalChart("age-chart",toChartRows(groupCount(data.enriched,p=>ageRange(Number(p.age))),chartPalette()));
+}
+
+function groupCount(items, fn) { return items.reduce((a,x)=>{const l=fn(x)||"Não informado";a[l]=(a[l]||0)+1;return a;},{}); }
+function toChartRows(g,colors) { return Object.entries(g).map(([l,v],i)=>({label:l,value:v,color:colors[i%colors.length]})); }
+function topRows(g,lim,colors) { return Object.entries(g).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,lim).map(([l,v],i)=>({label:l,value:v,color:colors[i%colors.length]})); }
+function chartPalette() { return ["#1a3c6e","#2558a8","#102650","#3b82f6","#60a5fa","#d97706","#dc2626"]; }
+
+function monthYearLabel(v) {
+  const d=parseDate(v); if(!d) return "Não informado";
+  return d.toLocaleDateString("pt-BR",{month:"short",year:"2-digit"}).replace(".","");
+}
+
+function monthChartRows(items) {
+  const colors=chartPalette(), grouped={};
+  items.forEach(x=>{
+    const d=parseDate(x.surgeryDate);
+    const k=d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:"Não informado";
+    grouped[k]=grouped[k]||{label:d?monthYearLabel(x.surgeryDate):"Não informado",value:0,sort:k};
+    grouped[k].value+=1;
+  });
+  return Object.values(grouped).sort((a,b)=>a.sort.localeCompare(b.sort)).map((r,i)=>({label:r.label,value:r.value,color:colors[i%colors.length]}));
+}
+
+function ageRange(age) {
+  if(!isFinite(age)) return "Não informado";
+  if(age<18) return "0-17"; if(age<=40) return "18-40"; if(age<=59) return "41-59"; if(age<=79) return "60-79"; return "80+";
+}
+
+function canvasBase(id) {
+  const canvas=document.getElementById(id), ctx=canvas.getContext("2d");
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.font="12px Arial"; ctx.textBaseline="middle";
+  return {canvas,ctx};
+}
+
+function drawDonutChart(id,rows,centerLabel) {
+  const {canvas,ctx}=canvasBase(id);
+  const total=rows.reduce((s,r)=>s+r.value,0)||1;
+  const cx=100,cy=94,radius=68; let start=-Math.PI/2;
+  rows.forEach(r=>{ const a=(r.value/total)*Math.PI*2; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,radius,start,start+a); ctx.closePath(); ctx.fillStyle=r.color; ctx.fill(); start+=a; });
+  ctx.globalCompositeOperation="destination-out"; ctx.beginPath(); ctx.arc(cx,cy,38,0,Math.PI*2); ctx.fill();
+  ctx.globalCompositeOperation="source-over";
+  ctx.fillStyle="#0d1a2e"; ctx.font="700 18px Arial"; ctx.textAlign="center";
+  ctx.fillText(`${Math.round((rows[0].value/total)*100)}%`,cx,cy-4);
+  ctx.font="12px Arial"; ctx.fillText(centerLabel,cx,cy+16);
+  rows.forEach((r,i)=>drawLegend(ctx,185,58+i*24,r.color,`${r.label}: ${r.value}`));
+}
+
+function drawVerticalChart(id,rows) {
+  const {canvas,ctx}=canvasBase(id);
+  const max=Math.max(1,...rows.map(r=>r.value));
+  const chartTop=32,chartBottom=158,leftPad=24;
+  const usableWidth=canvas.width-leftPad-18;
+  const slot=usableWidth/Math.max(1,rows.length);
+  const barWidth=Math.max(22,Math.min(48,slot*0.55));
+  rows.forEach((r,i)=>{
+    const x=leftPad+i*slot+(slot-barWidth)/2;
+    const h=((r.value||0)/max)*(chartBottom-chartTop);
+    ctx.fillStyle=r.color; ctx.fillRect(x,chartBottom-h,barWidth,h);
+    ctx.fillStyle="#0d1a2e"; ctx.font="700 12px Arial"; ctx.textAlign="center";
+    ctx.fillText(r.value,x+barWidth/2,chartBottom-h-10);
+    ctx.font="10px Arial"; wrapText(ctx,r.label,x+barWidth/2,180,Math.max(44,slot-6),12,"center");
+  });
+  ctx.strokeStyle="#c8d6e8"; ctx.beginPath(); ctx.moveTo(28,chartBottom); ctx.lineTo(canvas.width-22,chartBottom); ctx.stroke();
+}
+
+function drawHorizontalChart(id,rows) {
+  const {canvas,ctx}=canvasBase(id);
+  const max=Math.max(1,...rows.map(r=>r.value));
+  rows.forEach((r,i)=>{
+    const top=30, rowGap=Math.min(44,Math.max(28,168/Math.max(1,rows.length)));
+    const y=top+i*rowGap, labelWidth=112, barLeft=labelWidth+12;
+    const maxBarWidth=canvas.width-barLeft-46;
+    const width=((r.value||0)/max)*maxBarWidth;
+    ctx.fillStyle="#102650"; ctx.font="12px Arial"; ctx.textAlign="right"; ctx.fillText(shortLabel(r.label,18),labelWidth,y+10);
+    ctx.fillStyle=r.color; ctx.fillRect(barLeft,y,width,18);
+    ctx.fillStyle="#0d1a2e"; ctx.font="700 12px Arial"; ctx.textAlign="left"; ctx.fillText(r.value,barLeft+width+8,y+10);
+  });
+}
+
+function shortLabel(v,m) { const t=String(v||""); return t.length>m?`${t.slice(0,m-1)}…`:t; }
+function drawLegend(ctx,x,y,color,text) {
+  ctx.fillStyle=color; ctx.fillRect(x,y-6,12,12);
+  ctx.fillStyle="#0d1a2e"; ctx.font="12px Arial"; ctx.textAlign="left"; ctx.fillText(text,x+18,y);
+}
+
+function wrapText(ctx,text,x,y,maxWidth,lh,align="left") {
+  const words=String(text).split(" "); let line=""; ctx.textAlign=align;
+  words.forEach((w,i)=>{
+    const t=line?`${line} ${w}`:w;
+    if(ctx.measureText(t).width>maxWidth&&line){ctx.fillText(line,x,y);line=w;y+=lh;}else{line=t;}
+    if(i===words.length-1) ctx.fillText(line,x,y);
+  });
+}
+
+function renderBars(id,rows,isPercent=false) {
+  const max=isPercent?1:Math.max(1,...rows.map(r=>Number(r.value)||0));
+  document.getElementById(id).innerHTML=rows.map(r=>{
+    const width=Math.max(0,Math.min(100,((Number(r.value)||0)/max)*100));
+    return `<div class="bar-row"><div>${r.label}</div><div class="bar-track"><div class="bar-fill" style="width:${width}%"></div></div><div class="right">${r.text}</div></div>`;
+  }).join("");
+}
+
+function riskBadge(risk) { return `<span class="risk ${risk.toLowerCase()}">${risk} Risco</span>`; }
+function statusBadge(s) {
+  const k=s==="No prazo"?"ok":s==="Atrasado"||s==="Programado"?"warn":s==="Não realizado"?"bad":"";
+  return s?`<span class="status ${k}">${s}</span>`:"";
+}
+
+function renderPatients() {
+  const q=normalized(document.getElementById("search").value);
+  const rows=patients.map((p,i)=>({p,calc:patientCalc(p),i}))
+    .filter(({p,calc})=>normalized(`${p.code} ${p.name} ${calc.risk} ${p.service}`).includes(q));
+  const body=document.getElementById("patients-body");
+  if(!rows.length){body.innerHTML=`<tr><td colspan="12"><div class="empty">Nenhum paciente encontrado.</div></td></tr>`;return;}
+  body.innerHTML=rows.map(({p,calc,i})=>`
+    <tr>
+      <td>${p.code}</td><td>${p.name}</td><td class="right">${p.age}</td><td class="right">${p.asa}</td>
+      <td>${p.service}</td><td>${formatDate(p.surgeryDate)}</td><td>${riskBadge(calc.risk)}</td>
+      <td>${formatDate(calc.contacts[0])}<br>${statusBadge(calc.statuses[0])}</td>
+      <td>${formatDate(calc.contacts[1])}<br>${statusBadge(calc.statuses[1])}</td>
+      <td>${formatDate(calc.contacts[2])}<br>${statusBadge(calc.statuses[2])}</td>
+      <td>${p.infection}</td>
+      <td>${canEditPatients()?`<button class="button" type="button" onclick="editPatient(${i})">Editar</button>
+        <button class="button danger" type="button" onclick="deletePatient(${i})">Excluir</button>`
+        :`<span class="status">Visualização</span>`}</td>
+    </tr>`).join("");
+}
+
+function renderUsers() {
+  document.getElementById("users-body").innerHTML=users.map((u,i)=>`
+    <tr><td>${u.name}</td><td>${u.login}</td><td>${roleLabel(u.role)}</td>
+    <td><button class="button" type="button" onclick="editUser(${i})">Editar</button>
+    <button class="button danger" type="button" onclick="deleteUser(${i})" ${users.length===1?"disabled":""}>Excluir</button></td></tr>
+  `).join("");
+}
+
+function roleLabel(r) { return r==="gestor"?"Gestor":r==="auditor"?"Auditor":"Usuário"; }
+
+function applyPermissions() {
+  const logged=Boolean(currentUser);
+  document.getElementById("login-shell").classList.toggle("hidden",logged);
+  document.getElementById("app-shell").classList.toggle("hidden",!logged);
+  if(!logged) return;
+  document.getElementById("current-user-label").textContent=`${currentUser.name} (${roleLabel(currentUser.role)})`;
+  document.querySelectorAll(".gestor-only").forEach(el=>{ el.style.display=canManageUsers()?"":"none"; });
+  document.getElementById("update-excel").style.display=canEditPatients()?"":"none";
+  document.getElementById("reset-data").style.display=canEditPatients()?"":"none";
+  document.querySelector('[data-view="record"]').style.display=canEditPatients()?"":"none";
+  document.querySelectorAll("#patient-form input, #patient-form select, #patient-form button").forEach(el=>{ el.disabled=!canEditPatients(); });
+  if(!canManageUsers()&&document.getElementById("users").classList.contains("active")) showView("dashboard");
+  if(!canEditPatients()&&document.getElementById("record").classList.contains("active")) showView("dashboard");
+}
+
+function fillSelect(id, options) {
+  document.getElementById(id).innerHTML=options.map(o=>`<option>${o}</option>`).join("");
+}
+
+function formValue(id) { return document.getElementById(id).value.trim(); }
+
+function saveFromForm(e) {
+  e.preventDefault();
+  if(!canEditPatients()){setSyncStatus("Seu perfil permite somente visualização e filtros.","bad");return;}
+  const p={
+    code:formValue("code"),name:formValue("name"),age:Number(formValue("age")),sex:formValue("sex"),
+    asa:Number(formValue("asa")),service:formValue("service"),duration:formValue("duration"),
+    surgeryType:formValue("surgery-type"),video:formValue("video"),implants:formValue("implants"),
+    contamination:formValue("contamination"),extraTime:formValue("extra-time"),surgeryDate:formValue("surgery-date"),
+    infection:formValue("infection"),infectionType:formValue("infection-type"),infectionPlace:formValue("infection-place"),
+    infectionDate:formValue("infection-date"),evolution1:formValue("evolution-1"),evolution2:formValue("evolution-2"),
+    outcome:formValue("outcome"),outcomeDate:formValue("outcome-date"),loss:formValue("loss"),followDate:formValue("follow-date")
+  };
+  const idx=document.getElementById("edit-index").value;
+  if(idx==="") patients.push(p); else patients[Number(idx)]=p;
+  persist(); clearForm(); renderAll(); showView("patients");
+}
+
+function clearForm() {
+  document.getElementById("patient-form").reset();
+  document.getElementById("edit-index").value="";
+  document.getElementById("extra-time").value="0";
+  ["infection-type","infection-place","evolution-1","evolution-2"].forEach(id=>{ document.getElementById(id).value=""; });
+}
+
+function login(e) {
+  e.preventDefault();
+  const ln=normalized(document.getElementById("login-user").value);
+  const pw=document.getElementById("login-pass").value;
+  const found=users.find(u=>normalized(u.login)===ln&&u.password===pw);
+  if(!found){
+    const msg=document.getElementById("login-message");
+    msg.textContent="Usuário ou senha inválidos."; msg.classList.add("bad"); return;
+  }
+  currentUser=found;
+  localStorage.setItem(SESSION_KEY,found.login);
+  document.getElementById("login-form").reset();
+  applyPermissions(); renderAll(); showView("dashboard");
+}
+
+function logout() {
+  localStorage.removeItem(SESSION_KEY);
+  currentUser=null;
+  applyPermissions();
+}
+
+function saveUser(e) {
+  e.preventDefault(); if(!canManageUsers()) return;
+  const u={name:formValue("new-user-name"),login:formValue("new-user-login"),
+    password:document.getElementById("new-user-pass").value,role:formValue("new-user-role")};
+  const dup=users.findIndex((x,i)=>normalized(x.login)===normalized(u.login)&&String(i)!==document.getElementById("edit-user-index").value);
+  if(dup>=0){setSyncStatus("Já existe usuário com esse login.","bad");return;}
+  const idx=document.getElementById("edit-user-index").value;
+  if(idx==="") users.push(u); else { users[Number(idx)]=u; if(currentUser.login===u.login) currentUser=u; }
+  persistUsers(); clearUserForm(); renderUsers(); applyPermissions();
+  setSyncStatus("Usuário salvo.","ok");
+}
+
+function clearUserForm() {
+  document.getElementById("user-form").reset();
+  document.getElementById("edit-user-index").value="";
+}
+
+window.editUser = function(i) {
+  if(!canManageUsers()) return;
+  const u=users[i];
+  document.getElementById("edit-user-index").value=i;
+  document.getElementById("new-user-name").value=u.name;
+  document.getElementById("new-user-login").value=u.login;
+  document.getElementById("new-user-pass").value=u.password;
+  document.getElementById("new-user-role").value=u.role;
+};
+
+window.deleteUser = function(i) {
+  if(!canManageUsers()||users.length===1) return;
+  const u=users[i];
+  if(currentUser.login===u.login){setSyncStatus("Não é possível excluir o usuário conectado.","bad");return;}
+  if(!confirm(`Excluir usuário ${u.login}?`)) return;
+  users.splice(i,1); persistUsers(); renderUsers(); setSyncStatus("Usuário excluído.","ok");
+};
+
+window.editPatient = function(i) {
+  if(!canEditPatients()){setSyncStatus("Seu perfil permite somente visualização e filtros.","bad");return;}
+  const p=patients[i];
+  ["edit-index","code","name","age","sex","asa","service","duration","surgery-type","video","implants","contamination","extra-time","surgery-date","infection","infection-type","infection-place","infection-date","evolution-1","evolution-2","outcome","outcome-date","loss","follow-date"].forEach((id,idx)=>{
+    if(idx===0) document.getElementById(id).value=i;
+    else {
+      const map=["code","name","age","sex","asa","service","duration","surgeryType","video","implants","contamination","extraTime","surgeryDate","infection","infectionType","infectionPlace","infectionDate","evolution1","evolution2","outcome","outcomeDate","loss","followDate"];
+      const key=map[idx-1];
+      const val=["surgeryDate","infectionDate","outcomeDate","followDate"].includes(key)?toInputDate(p[key]):p[key]??0;
+      document.getElementById(id).value=val;
+    }
+  });
+  showView("record");
+};
+
+window.deletePatient = function(i) {
+  if(!canEditPatients()){setSyncStatus("Seu perfil permite somente visualização e filtros.","bad");return;}
+  if(!confirm(`Excluir ${patients[i].name}?`)) return;
+  patients.splice(i,1); persist(); renderAll();
+};
+
+function excelRows() {
+  return patients.map(p=>{
+    const calc=patientCalc(p);
+    return {
+      code:p.code,name:p.name,age:p.age,sex:p.sex,asa:p.asa,service:p.service,
+      duration:p.duration,surgeryType:p.surgeryType,video:p.video,implants:p.implants,
+      contamination:p.contamination,extraTime:p.extraTime||"0",
+      surgeryDate:formatDate(p.surgeryDate),
+      score:calc.score,risk:`${calc.risk} Risco`,
+      contact1:formatDate(calc.contacts[0]),status1:calc.statuses[0],
+      contact2:formatDate(calc.contacts[1]),status2:calc.statuses[1],
+      contact3:formatDate(calc.contacts[2]),status3:calc.statuses[2],
+      infection:p.infection,infectionType:p.infectionType,infectionPlace:p.infectionPlace,
+      infectionDate:formatDate(p.infectionDate),evolution1:p.evolution1,evolution2:p.evolution2,
+      outcome:p.outcome,outcomeDate:formatDate(p.outcomeDate),loss:p.loss,followDate:formatDate(p.followDate)
+    };
+  });
+}
+
+function exportCsv() {
+  const headers=["Codigo","Nome","Idade","Sexo","ASA","Servico","Duracao","Tipo","Video","Implantes","Potencial Cont.","Data Cirurgia","Calculo","Tipo Risco","Contato 1","Status 1","Contato 2","Status 2","Contato 3","Status 3","Infeccao","Tipo Infeccao","Local","Data Infeccao","Evolucao 1","Evolucao 2","Saida","Data Saida","Perda","Data Consulta"];
+  const lines=[headers,...excelRows().map(p=>[p.code,p.name,p.age,p.sex,p.asa,p.service,p.duration,p.surgeryType,p.video,p.implants,p.contamination,p.surgeryDate,p.score,p.risk,p.contact1,p.status1,p.contact2,p.status2,p.contact3,p.status3,p.infection,p.infectionType,p.infectionPlace,p.infectionDate,p.evolution1,p.evolution2,p.outcome,p.outcomeDate,p.loss,p.followDate])];
+  const csv=lines.map(r=>r.map(v=>`"${String(v??"").replace(/"/g,'""')}"`).join(";")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download="sistema-isc-export.csv"; a.click(); URL.revokeObjectURL(url);
+}
+
+function exportDashboardJpg() {
+  const charts=[
+    {title:"Taxa Global de ISC",id:"donut-chart"},{title:"Tipo de Risco",id:"risk-chart"},
+    {title:"Contatos Programados",id:"vertical-chart"},{title:"Tipos de ISC",id:"horizontal-chart"},
+    {title:"Serviço Médico",id:"service-chart"},{title:"Tipo de Cirurgia",id:"surgery-type-chart"},
+    {title:"Potencial de Contaminação",id:"contamination-chart"},{title:"Cirurgias por Mês/Ano",id:"month-chart"},
+    {title:"Faixa Etária",id:"age-chart"}
+  ];
+  const out=document.createElement("canvas"); out.width=1200; out.height=1240;
+  const ctx=out.getContext("2d");
+  ctx.fillStyle="#ffffff"; ctx.fillRect(0,0,out.width,out.height);
+  ctx.fillStyle="#1a3c6e"; ctx.font="700 30px Arial"; ctx.textAlign="left"; ctx.fillText("Dashboard ISC",40,48);
+  ctx.font="14px Arial"; ctx.fillStyle="#4a6180"; ctx.fillText(`Exportado em ${new Date().toLocaleString("pt-BR")}`,40,76);
+  charts.forEach((ch,idx)=>{
+    const src=document.getElementById(ch.id);
+    const col=idx%3, row=Math.floor(idx/3);
+    const x=40+col*380, y=112+row*350;
+    ctx.strokeStyle="#c8d6e8"; ctx.strokeRect(x,y,340,310);
+    ctx.fillStyle="#102650"; ctx.font="700 16px Arial"; ctx.fillText(ch.title,x+16,y+28);
+    ctx.drawImage(src,x+12,y+50,316,220);
+  });
+  const a=document.createElement("a"); a.href=out.toDataURL("image/jpeg",0.92); a.download="dashboard-isc.jpg"; a.click();
+}
+
+function exportIndicatorsExcel() {
+  const rows=[...document.querySelectorAll("#all-indicators-body tr")].map(tr=>[...tr.children].map(td=>td.textContent));
+  const html=`<html><head><meta charset="utf-8"></head><body><table border="1"><tr><th>Grupo</th><th>Indicador</th><th>Resultado</th></tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${escapeHtml(c)}</td>`).join("")}</tr>`).join("")}</table></body></html>`;
+  const blob=new Blob(["\uFEFF"+html],{type:"application/vnd.ms-excel;charset=utf-8"});
+  const url=URL.createObjectURL(blob), a=document.createElement("a");
+  a.href=url; a.download="indicadores-isc.xls"; a.click(); URL.revokeObjectURL(url);
+}
+
+function escapeHtml(v) { return String(v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function showView(id) {
+  if(id==="users"&&!canManageUsers()) id="dashboard";
+  if(id==="record"&&!canEditPatients()) id="dashboard";
+  document.querySelectorAll(".view").forEach(v=>v.classList.toggle("active",v.id===id));
+  document.querySelectorAll(".nav-button").forEach(b=>b.classList.toggle("active",b.dataset.view===id));
+  const titles={dashboard:"Dashboard",patients:"Pacientes",record:"Cadastro",users:"Usuários"};
+  document.getElementById("view-title").textContent=titles[id];
+}
+
+function renderAll() { renderDashboard(); renderPatients(); renderUsers(); applyPermissions(); }
+
+async function boot() {
+  fillSelect("service",lists.service);
+  fillSelect("contamination",lists.contamination);
+  fillSelect("infection-type",lists.infectionType);
+  fillSelect("infection-place",lists.infectionPlace);
+  fillSelect("evolution-1",lists.evolution1);
+  fillSelect("evolution-2",lists.evolution2);
+
+  document.querySelectorAll(".nav-button").forEach(b=>b.addEventListener("click",()=>showView(b.dataset.view)));
+  document.getElementById("login-form").addEventListener("submit",login);
+  document.getElementById("logout").addEventListener("click",logout);
+  document.getElementById("patient-form").addEventListener("submit",saveFromForm);
+  document.getElementById("user-form").addEventListener("submit",saveUser);
+  document.getElementById("clear-user-form").addEventListener("click",clearUserForm);
+  document.getElementById("clear-form").addEventListener("click",clearForm);
+  document.getElementById("search").addEventListener("input",renderPatients);
+  document.getElementById("export-csv").addEventListener("click",exportCsv);
+  document.getElementById("export-dashboard-jpg").addEventListener("click",exportDashboardJpg);
+  document.getElementById("export-indicators-excel").addEventListener("click",exportIndicatorsExcel);
+  document.getElementById("update-excel").addEventListener("click",saveToOneDrive);
+  document.getElementById("btn-ms-login").addEventListener("click",msLogin);
+  document.getElementById("reset-data").addEventListener("click",()=>{
+    if(!confirm("Restaurar a base inicial e apagar alterações locais?")) return;
+    patients=structuredClone(initialPatients); persist(); clearForm(); renderAll();
+  });
+
+  applyPermissions();
+  await initMsal();
+  renderAll();
+}
+
+boot();
+</script>
+</body>
+</html>
